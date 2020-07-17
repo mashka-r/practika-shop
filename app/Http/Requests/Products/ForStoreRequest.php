@@ -22,7 +22,7 @@ class ForStoreRequest extends FormRequest
             'category_id'    => 'required|integer|between:'.$b.','.$a,
             'code'           => 'required|unique:products',
             'price'          => 'required|integer',
-            
+            'count_store'    => 'integer',
         ];
     }
 }

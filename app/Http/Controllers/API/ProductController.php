@@ -28,6 +28,7 @@ class ProductController extends Controller
             'code'           => request('code'),
             'description'    => request('description'),
             'price'          => request('price'),
+            'count_store'    => request('count_store'),
         ]);
 
 
@@ -50,7 +51,8 @@ class ProductController extends Controller
     {
         $this->authorize('before', User::class);
         $product = Product::where('id', $id);
-        $product->update($request->all());
+        $product->update($request->only(
+            'name', 'code', 'category_id','description','price', 'count_store'));
     
     }
 
@@ -59,7 +61,21 @@ class ProductController extends Controller
         $this->authorize('before', User::class); 
 
         $product = Product::find($id);
-        $product->delete();
         
+        if ($product->count_store == 0 && $product->count_res == 0) {
+            $product->delete();
+            $response = [
+                'success' => true,
+                'message' => 'Товар удален.',
+            ];
+
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Данный товар остался на складе иди участвует в активном заказе.',
+            ];
+        }
+
+        return response()->json($response);
     }
 }

@@ -40,6 +40,11 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Role::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);    
+    }
+
     public function isAdmin()
     {
         return (boolean)$this->roles->where('name', 'Admin')->count();

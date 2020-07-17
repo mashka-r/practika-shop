@@ -2,101 +2,86 @@
 
 namespace App\Http\Controllers;
 
+use Session;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Cart;
 
 class BasketController extends Controller
 {
     public function basket() 
     {
-        $orderId = session('orderId');
-        
-        if (!is_null($orderId)) {
-            $order = Order::findOrFail($orderId);
-        }
-        return view('basket', compact('order'));
+        if (!Session::has('cart')) {
+            return view('basket');
+        } 
+        $oldCart = Session::get('cart');
+        $cart = new Cart($oldCart);
+
+        return view ('basket', ['products' => $cart->items, 
+                                    'totalPrice' => $cart->totalPrice]);
     }
 
     public function basketConfirm(Request $request) 
     {
-        $orderId = session('orderId');
-        if (is_null($orderId)) {
-            return redirect()->route('index');
-        }
-        $order = Order::find($orderId);
-        $success = $order->saveOrder($request->name, $request->email);
+        $cart = Session::get('cart');
+        $order = Order::create();
+        $products = $cart->items;
 
+        foreach ($products as $product) {
+            $order->products()->attach($product['item']);
+            
+            $pivotRow = $order->products()->where('product_id', $product['item']['id'])
+                                          ->first()->pivot;
+            $pivotRow->count = $product['qty']; 
+            $pivotRow->update();
+
+            $rowCountRes = Product::find($product['item']['id']);
+            $rowCountRes->count_res = $product['qty'];
+            $rowCountRes->save();
+        }
+        
+        $success = $order->saveOrder($order->id, $request->name, $request->email);
         if ($success) {
             session()->flash('success', 'Ваш заказ принят в обработку');
+            $request->session()->forget('cart');
         } else {
             session()->flash('warning', 'Что-то пошло не так');
         }
+
         return redirect()->route('index');
     }
 
     public function basketPlace() {
-        $orderId = session('orderId');
-        if (is_null($orderId)) {
-            return redirect()->route('index');
-        }
-        $order = Order::find($orderId);
-        return view('order', compact('order'));
+        $cart = Session::get('cart');
+        return view ('order', ['products' => $cart->items, 
+                            'totalPrice' => $cart->totalPrice]);
     }
 
-    public function basketAdd($productId) 
+    public function basketAdd(Request $request, $id) 
     {
-        $orderId = session('orderId');
+        $product = Product::find($id);
+        $oldCart = Session::has('cart') ? Session::get('cart') : null;
 
-        if (is_null($orderId)) {
-            $order = Order::create();
-            session(['orderId' => $order->id]);
-            
-        } else {
-            $order = Order::find($orderId);
-        }
-        
-        if ($order->products->contains($productId)) {
-            $pivotRow = $order->products()->where('product_id', $productId)->first()->pivot;
-            $pivotRow->count++;
-            $pivotRow->update();
+        $cart = new Cart($oldCart);
+        $cart->add($product, $product->id);
+        $request->session()->put('cart', $cart);
 
-        } else {
-            $order->products()->attach($productId);
-        }
-        
-        $product = Product::find($productId);
-        session()->flash('success', 'Добавлен товар '. $product->name);
-    
         return redirect()->route('basket');
-        
     }
 
-    public function basketRemove($productId) 
+    public function basketRemove(Request $request, $id) 
     {
-        $orderId = session('orderId');
 
-        if (is_null($orderId)) {
-            return redirect()->route('basket');
-        }
+        $product = Product::find($id);
+        $oldCart = Session::has('cart') ? Session::get('cart') : redirect()->route('basket');
         
-        $order = Order::find($orderId);
+        $cart = new Cart($oldCart);
+        $cart->del($product, $product->id);
 
-        if ($order->products->contains($productId)) {
-            $pivotRow = $order->products()->where('product_id', $productId)->first()->pivot;
-
-            if ($pivotRow->count < 2) {
-                $order->products()->detach($productId);
-            } else {
-                $pivotRow->count--;
-                $pivotRow->update();
-            }
-        } 
-    
-        $product = Product::find($productId);
-        session()->flash('warning', 'Удален товар '. $product->name);
+        $request->session()->put('cart', $cart);
+        session()->flash('success', 'Товар '. $product->name.' удален.');
 
         return redirect()->route('basket');
-       
     }
 }

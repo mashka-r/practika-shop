@@ -16,31 +16,24 @@ class Order extends Model
         return $this->belongsTo(Status::class, 'status');
     }
 
-    public function getFullPrice()
+        public function user()
     {
-        $sum = 0;
-        foreach ($this->products as $product) {
-            $sum += $product->getPriceForCount();
-           
-        }
-        return $sum;
+        return $this->belongsTo(User::class, 'user');
     }
 
-    public function saveOrder($name, $email) 
+    public function saveOrder($id, $name, $email) 
     {
-        if ($this->status == 0) {
-            $this->name = $name;
-            $this->email = $email;
-            $this->status = 1;
-            $this->save(); 
-            session()->forget('orderId');
-
+        $order = Order::find($id);
+        if ($order->status == 0) {
+            $order->name = $name;
+            $order->email = $email;
+            $order->status = 1;
+            $order->save(); 
             return true;
 
         } else {
+            $order->delete();
             return false;
         }
-        
     }
-    
 }

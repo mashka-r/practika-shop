@@ -3,6 +3,7 @@
 @section('title', 'Корзина ')
 
 @section('content')
+    @if(Session::has('cart') && count($products) > 0)
     <h1>Корзина</h1>
     <p>Оформление заказа</p>
     <div class="panel">
@@ -16,18 +17,18 @@
             </tr>
             </thead>
             <tbody>
-                @foreach($order->products as $product)
+                @foreach($products as $product)
                 <tr>
                     <td>
-                        <a href="{{ route('product', [$product->category->code, $product->code]) }}">
+                        <a href="">
                             <img height="56px" src="">
-                            {{ $product->name }}
+                            {{ $product['item']['name'] }}
                         </a>
                     </td>
-                    <td><span class="badge">{{ $product->pivot->count }}</span>
+                    <td><span class="badge">{{ $product['qty'] }}</span>
                         <div class="btn-group form-inline">
                                
-                            <form action="{{ route('basket-remove' , $product) }}" method="POST">
+                            <form action="{{ route('basket-remove' , $product['item']) }}" method="POST">
                                 <button type="submit" class="btn btn-danger"
                                     href="">
                                     <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
@@ -35,7 +36,7 @@
                                 @csrf
                             </form>
                             
-                            <form action="{{ route('basket-add' , $product) }}" method="POST">
+                            <form action="{{ route('basket-add' , $product['item']) }}" method="POST">
                                 <button type="submit" class="btn btn-success"
                                 href=""><span
                                         class="glyphicon glyphicon-plus" aria-hidden="true"></span></button>
@@ -44,14 +45,14 @@
                                                      
                         </div>
                     </td>
-                    <td>{{ $product->price }} руб.</td>
-                    <td>{{ $product->getPriceForCount() }} руб.</td>
+                    <td>{{ $product['item']['price'] }} руб.</td>
+                    <td>{{ $product['price'] }} руб.</td>
                 </tr>
                 @endforeach
                 
                 <tr>
                 <td colspan="3">Общая стоимость:</td>
-                <td>{{ $order->getFullPrice() }} руб.</td>
+                <td>{{ $totalPrice }} руб.</td>
             </tr>
             </tbody>
         </table>
@@ -60,4 +61,7 @@
             <a type="button" class="btn btn-success" href="{{ route('basket-place') }}">Оформить заказ</a>
         </div>
     </div>
+    @else
+        <p>Ваша корзина пуста</p>
+    @endif
 @endsection

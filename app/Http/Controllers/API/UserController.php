@@ -20,7 +20,7 @@ class UserController extends Controller
     public function update(ForUpdateRequest $request)
     {
         $id = Auth::user()->id;
-        User::where('id', $id)->first()->update($request->all());
+        User::where('id', $id)->first()->update($request->only('email', 'name', 'password'));
  
         $response = [
             'success' => true,

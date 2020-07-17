@@ -22,6 +22,7 @@ class ForUpdateRequest extends FormRequest
             'name'          => 'unique:products',
             'code'          => 'unique:products',
             'category_id'   => 'integer|between:'.$b.','.$a,
+            'count_store'   => 'integer',
         ];
     }
 }

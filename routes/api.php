@@ -47,6 +47,9 @@ Route::group(['prefix' => 'manager'], function() {
         Route::resource('products', 'API\ProductController')->only([
             'index', 'store', 'show', 'update', 'destroy'
         ]);
+        Route::resource('categories', 'API\CategoryController')->only([
+            'index', 'store', 'show', 'update', 'destroy'
+        ]);
         Route::get('/logout', 'API\LogController@logout');
     });
 });

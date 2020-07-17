@@ -28,7 +28,7 @@ class ManagerController extends Controller
     {
         $this->authorize('before', User::class);
         $order = Order::where('id', $id);
-        $order->update($request->all());
+        $order->update($request->only('status'));
         $response = [
             'success' => true,
             'message' => 'Статус заказа обновлен',

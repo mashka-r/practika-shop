@@ -50,7 +50,7 @@ class AdminController extends Controller
     {
         $this->authorize('before', User::class);
         $user = User::where('id', $id);
-        $user->update($request->all());
+        $user->update($request->only('email', 'name', 'password'));
  
         $response = [
             'success' => true,
