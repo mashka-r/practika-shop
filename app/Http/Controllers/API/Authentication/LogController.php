@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\API\Authentication;
    
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -32,7 +32,6 @@ class LogController extends Controller
             'token'      => $token->accessToken,
         ];
 
-        $token->token->save();
         return response()->json($response);
     }
 

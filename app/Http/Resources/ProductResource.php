@@ -3,8 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Route;
-use App\Models\Category;
 
 class ProductResource extends JsonResource
 {
@@ -15,16 +13,15 @@ class ProductResource extends JsonResource
      * @return array
      */
     public function toArray($request)
-    {
-        $route = Route::currentRouteName();
-        
-        if ((stripos($route, 'orders')) === true) {
+    {   
+        if (stripos($request->path(), 'orders')) {
             return [
                 'id'      => $this->id,
                 'name'   => $this->name,
                 'price'   => $this->price,
                 'count'   => $this->pivot->count,
             ];
+
         } else {
             return [
                 'id'            => $this->id,

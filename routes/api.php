@@ -13,44 +13,49 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('/register', 'API\RegisterController@register')->name('api-register');
-Route::post('/login', 'API\LogController@login')->name('api-login');
+Route::post('/register', 'API\Authentication\RegisterController@register');
+Route::post('/login', 'API\Authentication\LogController@login');
+
+Route::get('/catalog/{product?}', 'API\Catalog\MainController@index')->name('catalog');
+Route::group(['prefix' => 'categories'], function() {
+    Route::get('/{category?}', 'API\Catalog\MainController@categories');
+    Route::get('/{category}/{product}', 'API\Catalog\MainController@product');
+});
+
+Route::group(['prefix' => 'basket', ], function() {
+    Route::get('/', 'API\Basket\BasketController@basketCheck');
+    Route::get('/add/{product}', 'API\Basket\BasketController@basketAdd');
+    Route::get('/remove/{product}', 'API\Basket\BasketController@basketRemove');
+    Route::post('/confirm', 'API\Basket\BasketController@basketConfirm');
+});  
 
 Route::middleware('auth:api')->group(function () {
 
-    Route::group(['prefix' => 'lk-kab'], function() {
-        Route::get('/show', 'API\UserController@show');
-        Route::post('/update', 'API\UserController@update'); 
-        Route::get('/delete', 'API\UserController@delete');
-        Route::get('/logout', 'API\LogController@logout')->name('api-logout');
+    Route::middleware('role')->group(function () {
+        Route::resource('products', 'API\Catalog\ProductController');
+        Route::resource('categories', 'API\Catalog\CategoryController');
+        Route::resource('orders', 'API\Manager\ManagerController');
     });
-});
 
-Route::group(['prefix' => 'admin'], function() {
-    Route::post('/login', 'API\LogController@login');
-    
-    Route::middleware('auth:api')->group(function () {
-        Route::resource('users', 'API\AdminController')->only([
-            'index', 'store', 'show', 'update', 'destroy'
-        ]);
-        Route::get('/logout', 'API\LogController@logout');
+    Route::group(['prefix' => 'admin'], function() {
+        Route::resource('users', 'API\Admin\AdminController');
     });
-});
 
-Route::group(['prefix' => 'manager'], function() {
-    Route::post('/login', 'API\LogController@login');
+    Route::group(['prefix' => 'users'], function() {
+        Route::get('/show', 'API\Users\UserController@show');
+        Route::post('/update', 'API\Users\UserController@update');
+        Route::get('/delete', 'API\Users\UserController@delete');
+        Route::get('/orders/show/{order?}', 'API\Users\OrderController@show');
+        Route::post('/orders/update/{order}', 'API\Users\OrderController@update');
+        Route::get('/orders/delete/{order}', 'API\Users\OrderController@delete');
 
-    Route::middleware('auth:api')->group(function () {
-        Route::resource('orders', 'API\ManagerController')->only([
-            'index', 'show', 'update'
-        ]);
-        Route::resource('products', 'API\ProductController')->only([
-            'index', 'store', 'show', 'update', 'destroy'
-        ]);
-        Route::resource('categories', 'API\CategoryController')->only([
-            'index', 'store', 'show', 'update', 'destroy'
-        ]);
-        Route::get('/logout', 'API\LogController@logout');
+        Route::group(['prefix' => 'basket', ], function() {
+            Route::get('/', 'API\Basket\BasketController@basketCheck');
+            Route::get('/add/{product}', 'API\Basket\BasketController@basketAdd');
+            Route::get('/remove/{product}', 'API\Basket\BasketController@basketRemove');
+            Route::post('/confirm', 'API\Basket\BasketController@basketConfirm');
+        });  
     });
-});
 
+    Route::get('/logout', 'API\Authentication\LogController@logout');
+});

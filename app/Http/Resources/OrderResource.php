@@ -23,7 +23,7 @@ class OrderResource extends JsonResource
                                                                 ->where('order_id', $this->id)
                                                                 ->get()),
             'status'     => $this->status()
-                                    ->where('id', '=', $this->status)
+                                    ->where('id', $this->status)
                                     ->get('description'),
         ];
     }

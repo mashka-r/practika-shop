@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests\Orders;
 
-use App\Models\Status;
 use Illuminate\Foundation\Http\FormRequest;
+use Config;
+use Auth;
 
 class ForUpdateRequest extends FormRequest
 {
@@ -14,11 +15,19 @@ class ForUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        $a = Status::max('id');
-        $b = (Status::min('id'));
+        $role = Config::get('constants.roles.role_user');
+
+        if ((boolean)(Auth::user()->roles->where('id', $role)->count())) {
+            $a = Config::get('constants.status.status_return'); 
+            $b = Config::get('constants.status.status_received'); 
+           
+        } else {
+            $a = Config::get('constants.status.status_delivered'); 
+            $b = Config::get('constants.status.status_processing'); 
+        };
 
         return [
-            'status'      => 'required|integer|between:'.$b.','.$a,
+            'status'    => 'required|integer|between:'.$b.','.$a,
         ];
     }
 }

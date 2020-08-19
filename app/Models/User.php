@@ -7,6 +7,7 @@ use Laravel\Passport\HasApiTokens;
 use Spatie\MediaLibrary\HasMedia\HasMedia;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\Models\Media;
+use Config;
 
 
 class User extends Authenticatable implements HasMedia
@@ -40,30 +41,24 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Role::class);
     }
 
+    public function baskets()
+    {
+        return $this->hasMany(Basket::class);    
+    }
+
     public function orders()
     {
-        return $this->hasMany(Order::class);    
+        return $this->hasMany(Order::class);
     }
 
     public function isAdmin()
     {
-        return (boolean)$this->roles->where('name', 'Admin')->count();
+        return (boolean)$this->roles->where('id', Config::get('constants.roles.role_admin'))->count();
     }
 
-    public function isManager()
+    public function registerMediaCollections()
     {
-        return (boolean)$this->roles->where('name', 'Manager')->count();
-    }
-
-    public function registerMediaConversions(Media $media = null)
-    {
-        $this->addMediaConversion('thumb')
-            ->width(100)
-            ->height(100)
-            ->sharpen(10);
-
-        $this->addMediaConversion('full-size')
-            ->greyscale()
-            ->withResponsiveImages();
+        $this->addMediaCollection('image')->singleFile();
+    
     }
 }

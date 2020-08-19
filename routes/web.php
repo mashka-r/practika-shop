@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', 'MainController@index')->name('index');
+/*Route::get('/', 'MainController@index')->name('index');
 Route::get('/categories', 'MainController@categories')->name('categories');
 
 Route::get('/register', 'API\RegisterController@show')->name('register');
@@ -28,4 +28,5 @@ Route::group(['prefix' => 'basket', ], function() {
 });  
 
 Route::get('/{category}', 'MainController@category')->name('category');
-Route::get('/{category}/{product?}', 'MainController@product')->name('product');
+Route::get('/{category}/{product?}', 'MainController@product')->name('product');*/
+

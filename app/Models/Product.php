@@ -6,11 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    /**
-    * The attributes that are mass assignable.
-    *
-    * @var array
-    */
     protected $fillable = [
         'name', 
         'category_id', 
@@ -24,6 +19,11 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function baskets()
+    {
+        return $this->hasMany(Basket::class);
     }
 
 }
