@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\Catalog;
+namespace App\Http\Controllers\API\Manager\Product;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
@@ -22,22 +22,20 @@ class ProductController extends Controller
         return response(ProductResource::make($product));
     }
 
-    public function show($id)
+    public function show(Product $product)
     {
-        return response(ProductResource::make(Product::find($id)));
-    }
-
-    public function update(ForUpdateRequest $request, $id)
-    {
-        $product = Product::find($id);
-        $product->update($request->validated());
-        
         return response(ProductResource::make($product));
     }
 
-    public function destroy($id)
+    public function update(ForUpdateRequest $request, Product $product)
     {
-        $product = Product::find($id);
+        $product->update($request->validated());
+        
+        return response(ProductResource::make($product->refresh()));
+    }
+
+    public function destroy(Product $product)
+    {
         
         if ($product->count_store == 0 && $product->count_res == 0) {
             $product->delete();

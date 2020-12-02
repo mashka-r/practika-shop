@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('control:user')->weekly();
+        $schedule->command('control:user')->daily();
     }
 
     protected function commands()

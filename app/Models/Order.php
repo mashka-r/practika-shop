@@ -24,20 +24,5 @@ class Order extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    public function saveOrder($id, $name, $email) 
-    {
-        $order = Order::find($id);
-        if ($order->status == 0) {
-            $order->name = $name;
-            $order->email = $email;
-            $order->status = 1;
-            $order->save(); 
-            return true;
-
-        } else {
-            $order->delete();
-            return false;
-        }
-    }
+    
 }

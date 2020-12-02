@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\Catalog;
+namespace App\Http\Controllers\API\Manager\Category;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
@@ -23,28 +23,26 @@ class CategoryController extends Controller
         return response(CategoryResource::make($category));
     }
 
-    public function show($id)
+    public function show(Category $category)
     {
-        return response(CategoryResource::make(Category::get($id)));
-    }
-
-    public function update(ForUpdateRequest $request, $id)
-    {
-        $category = Category::find($id);
-        $category->update($request->validated());
-    
         return response(CategoryResource::make($category));
     }
 
-    public function destroy($id)
+    public function update(ForUpdateRequest $request, Category $category)
     {
-        $category = Category::find($id);
+        $category->update($request->validated());
 
-        if  (Product::where('category_id', $id)->count()) {
+        return response(CategoryResource::make($category->refresh()));
+    }
+
+    public function destroy(Category $category)
+    {
+        if  (Product::where('category_id', $category->id)->count()) {
             $response = [
                 'success' => false,
                 'message' => 'Категорию удалить нельзя!',
             ];
+
         } else {
             $response = [
                 'success' => true,
@@ -53,6 +51,7 @@ class CategoryController extends Controller
 
             $category->delete();
         }
+
         return response()->json($response);
     }
 }

@@ -2,23 +2,18 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Spatie\MediaLibrary\HasMedia\HasMedia;
 use Spatie\MediaLibrary\HasMedia\HasMediaTrait;
 use Spatie\MediaLibrary\Models\Media;
-use Config;
-
+use App\Models\Role;
 
 class User extends Authenticatable implements HasMedia
 {
-    use HasApiTokens, Notifiable, HasMediaTrait;
+    use HasApiTokens, Notifiable, HasMediaTrait, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'name', 
         'email', 
@@ -26,11 +21,8 @@ class User extends Authenticatable implements HasMedia
         'image',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
+    protected $dates = ['deleted_at'];
+    
     protected $hidden = [
         'password', 
         'remember_token',
@@ -53,12 +45,20 @@ class User extends Authenticatable implements HasMedia
 
     public function isAdmin()
     {
-        return (boolean)$this->roles->where('id', Config::get('constants.roles.role_admin'))->count();
+        return (boolean)$this->roles->where('id', Role::ROLES['role_admin'])->count();
     }
-
+    
+    public function isManager()
+    {
+        return (boolean)$this->roles->where('id', Role::ROLES['role_manager'])->count();
+    }
+    public function isClient()
+    {
+        return (boolean)$this->roles->where('id', Role::ROLES['role_user'])->count();
+    }
+    
     public function registerMediaCollections()
     {
         $this->addMediaCollection('image')->singleFile();
-    
     }
 }

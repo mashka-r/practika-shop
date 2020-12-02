@@ -8,18 +8,19 @@ use App\Models\Product;
 use App\Models\Basket;
 use  App\Http\Resources\BasketResource;
 use App\Http\Controllers\Controller;
+use DB;
 use Auth;
 
 class BasketController extends Controller
 {
      public function basketCheck(Request $request) 
     {
-        $value = 4;
-        $temporary_key = $request->cookie('temporary_key') ? $request->cookie('temporary_key') 
-                                    : setcookie('temporary_key', $value, time()+3600);
+        $total = Basket::TOTAL;
+        $temporary_key = $request->cookie('temporary_key') 
+                                    ? $request->cookie('temporary_key') 
+                                    : setcookie('temporary_key', Basket::VALUE, time()+3600);
         
         $basket = Basket::whereTemporary_key($temporary_key)->get();
-        $total = 0;
 
         foreach ($basket as $item) {
             $total += $item->count * $item->product->price;
@@ -30,9 +31,8 @@ class BasketController extends Controller
 
     public function basketAdd(Request $request, Product $product) 
     {
-        $value = 4;
         $temporary_key = $request->cookie('temporary_key') ? $request->cookie('temporary_key') 
-                                    : setcookie('temporary_key', $value, time()+3600);
+                                    : setcookie('temporary_key', Basket::VALUE, time()+3600);
                                     
         if ($product->count_store - $product->count_res > 0) {
             $basket = Basket::firstOrCreate(['temporary_key' => $temporary_key, 
@@ -40,16 +40,17 @@ class BasketController extends Controller
                                                 'product_id' => $product->id]);
 
             $basket->increment('count');
+
         } else {
             return 'Товар отсутствует на складе';
+
         }
     }
 
     public function basketRemove(Request $request, Product $product) 
     {
-        $value = 4;
         $temporary_key = $request->cookie('temporary_key') ? $request->cookie('temporary_key') 
-                            : setcookie('temporary_key', $value, time()+3600);
+                            : setcookie('temporary_key', Basket::VALUE, time()+3600);
 
         $basket = Basket::firstOrCreate(['temporary_key' => $temporary_key, 
                                             'user_id'    => Auth::id(),
@@ -66,36 +67,46 @@ class BasketController extends Controller
     }
 
     public function basketConfirm(Request $request)  {
-        $value = 4;
+
         $temporary_key = $request->cookie('temporary_key') ? $request->cookie('temporary_key') 
-                    : setcookie('temporary_key', $value, time()+3600);
+                    : setcookie('temporary_key', Basket::VALUE, time()+3600);
 
         $products = Basket::whereTemporary_key($temporary_key)->get();
-       
-        if (!count($products)) {
-            return 'Ваша корзина пуста';
+    
+        DB::beginTransaction();
+        try {
+            if ($products->isEmpty()) {
+                throw new CreateOrderException('Ваша корзина пуста');
             
-        } else {
-            $order = Order::create(['user_id' => Auth::id()]);
-        
-            foreach ($products as $product) {
-                $order->products()->attach($product->product_id);
-                $pivotRow = $order->products()
-                                ->where('product_id',$product->product_id)
-                                ->first()->pivot;
-                                    
-                $pivotRow->count = $product->count; 
-                $pivotRow->update();
-
-                $rowCountRes = Product::find($product->product_id);
-                $rowCountRes->count_res += $product->count;
-                $rowCountRes->save();
             }
+            $order = Order::create(['user_id' => Auth::id()]);
 
-            $success = $order->saveOrder($order->id, $request->name, $request->email);
-            if ($success) {
-                Basket::whereTemporary_key($temporary_key)->delete();
-           }
+            $order->name = $request->name;
+            $order->email = $request->email;
+            $order->status = 1;
+            $order->save(); 
+
+            $products->each(function (Basket $product) use ($order) {
+                $order->products()->attach($product->product_id);
+                DB::table('order_product')->where('order_id', $order->id)
+                                        ->where('product_id',$product->product_id)
+                                        ->update(['count' => $product->count]);
+                        
+                Product::find($product->product_id)->increment('count_res', $product->count);
+            });
+            Basket::whereTemporary_key($temporary_key)->delete();
+        
+            DB::commit();
+
+        } catch (CreateOrderException $e) {
+                DB::rollBack();
+                return response()->json(['message' => $e->getMessage()], 403);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Что-то пошло не так'], 500);
         }
+
+        return response()->json(['message' => 'Заказ принят в обработку']);
+        
     }
 }

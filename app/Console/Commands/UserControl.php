@@ -19,11 +19,6 @@ class UserControl extends Command
 
     public function handle()
     {
-        $items = Basket::where('updated_at', '<', Carbon::now()->Month())->get();
-        foreach ($items as $item) {
-            if ($item->user_id == NULL) {
-                Basket::whereTemporary_key($item->temporary_key)->delete();
-            }
-        }
+        Basket::where('updated_at', '<', Carbon::now()->Month())->whereNull('user_id')->delete();
     }
 }

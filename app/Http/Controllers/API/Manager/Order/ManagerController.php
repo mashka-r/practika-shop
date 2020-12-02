@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\Manager;
+namespace App\Http\Controllers\API\Manager\Order;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
@@ -14,16 +14,14 @@ class ManagerController extends Controller
         return response(OrderResource::collection(Order::all()));
     }
 
-    public function show($id)
+    public function show(Order $order)
     {
-        return response(OrderResource::make(Order::find($id)));
+        return response(OrderResource::make(($order)));
     }
 
-    public function update(ForUpdateRequest $request, $id)
+    public function update(ForUpdateRequest $request, Order $order)
     {
-        $order = Order::find($id);
         $order->update($request->validated());
-    
-        return response(OrderResource::make($order));
+        return response(OrderResource::make($order->refresh()));
     }
 }

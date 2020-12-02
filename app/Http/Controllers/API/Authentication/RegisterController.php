@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Authentication;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ForStoreRequest;
 use App\Models\User;
+use App\Models\Role;
 use Config;
 
 class RegisterController extends Controller
@@ -17,7 +18,7 @@ class RegisterController extends Controller
         }
         
         $user->refresh();  
-        $user->roles()->attach(Config::get('constants.roles.role_user'));
+        $user->roles()->attach(Role::ROLES['role_user']);
 
         $response = [
             'success' => true,

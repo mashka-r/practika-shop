@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\Users;
+namespace App\Http\Controllers\API\Users\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
@@ -23,16 +23,14 @@ class UserController extends Controller
                 ->toMediaCollection('images');
         }
 
-        Auth::user()->refresh();
-
         if ($request->has('password')) {
             Auth::user()->token()->revoke();
-        } else {
-            return response(UserResource::make(Auth::user()));
-        }
+        } 
+            
+        return response(UserResource::make(Auth::user()->refresh()));
     }
 
-    public function delete()
+    public function destroy()
     { 
         Auth::user()->delete();
         

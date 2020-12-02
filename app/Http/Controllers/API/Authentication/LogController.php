@@ -8,11 +8,6 @@ use App\Models\User;
 
 class LogController extends Controller
 {
-    public function show()
-    {
-        return view('auth\login');
-    }
-
     public function login(Request $request) 
     {
         if (!$user = User::where('email', $request->input('email'))->first()) {

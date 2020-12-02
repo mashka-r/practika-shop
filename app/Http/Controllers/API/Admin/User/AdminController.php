@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\Admin;
+namespace App\Http\Controllers\API\Admin\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -13,6 +13,7 @@ class AdminController extends Controller
     public function index()
     {
         $this->authorize('before', User::class); 
+        
         return response(UserResource::collection(User::all()));
     }
 
@@ -32,17 +33,17 @@ class AdminController extends Controller
         return response(UserResource::make($user));
     }
 
-    public function show($id)
+    public function show(User $user)
     {
         $this->authorize('before', User::class);
-        return response(UserResource::make(User::find($id)));
+
+        return response(UserResource::make($user));
     }
 
-    public function update(ForUpdateRequest $request, $id)
+    public function update(ForUpdateRequest $request, User $user)
     {
         $this->authorize('before', User::class);
 
-        $user = User::find($id);
         $user->update($request->validated());
 
         if ($request->hasFile('image')) {
@@ -50,16 +51,13 @@ class AdminController extends Controller
                 ->toMediaCollection('images');
         }
 
-        $user->refresh();
-        
-        return response(UserResource::make($user));
+        return response(UserResource::make($user->refresh()));
     }
 
-    public function destroy($id)
+    public function destroy(User $user)
     {
         $this->authorize('before', User::class); 
 
-        $user = User::find($id);
         $user->delete();
 
         $response = [

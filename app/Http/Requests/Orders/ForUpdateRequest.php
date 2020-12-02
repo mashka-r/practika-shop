@@ -2,32 +2,27 @@
 
 namespace App\Http\Requests\Orders;
 
+use App\Models\Status;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Config;
 use Auth;
 
 class ForUpdateRequest extends FormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
-        $role = Config::get('constants.roles.role_user');
-
-        if ((boolean)(Auth::user()->roles->where('id', $role)->count())) {
-            $a = Config::get('constants.status.status_return'); 
-            $b = Config::get('constants.status.status_received'); 
+        if (Auth::user()->isClient()) {
+            $a = Status::ORDER_STATUSES['status_return']; 
+            $b = Status::ORDER_STATUSES['status_received'];
            
         } else {
-            $a = Config::get('constants.status.status_delivered'); 
-            $b = Config::get('constants.status.status_processing'); 
+           
+            $a = Status::ORDER_STATUSES['status_delivered'];
+            $b = Status::ORDER_STATUSES['status_processing'];
         };
-
+        
         return [
-            'status'    => 'required|integer|between:'.$b.','.$a,
+            'status'    => 'required|integer|in:{$b},{$a}',
         ];
     }
 }

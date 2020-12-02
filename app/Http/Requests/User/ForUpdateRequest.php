@@ -7,17 +7,12 @@ use Hash;
 
 class ForUpdateRequest extends FormRequest
 {
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
         return [
-            'name'     => 'max:255',
-            'email'    => 'email|unique:users',
-            'password' => 'min:8|max:255',
+            'name'     => 'nullable|max:255',
+            'email'    => 'nullable|email|unique:users',
+            'password' => 'nullable|min:8|max:255',
             'image'    => 'mimes:png,jpeg,jpg',
         ];
     }

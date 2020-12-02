@@ -16,10 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', 'API\Authentication\RegisterController@register');
 Route::post('/login', 'API\Authentication\LogController@login');
 
-Route::get('/catalog/{product?}', 'API\Catalog\MainController@index')->name('catalog');
-Route::group(['prefix' => 'categories'], function() {
-    Route::get('/{category?}', 'API\Catalog\MainController@categories');
-    Route::get('/{category}/{product}', 'API\Catalog\MainController@product');
+Route::group(['prefix' => 'catalog'], function() {
+    Route::resource('products', 'API\Catalog\Product\ProductController');
+    Route::resource('categories', 'API\Catalog\Category\CategoryController');
 });
 
 Route::group(['prefix' => 'basket', ], function() {
@@ -31,30 +30,35 @@ Route::group(['prefix' => 'basket', ], function() {
 
 Route::middleware('auth:api')->group(function () {
 
-    Route::middleware('role')->group(function () {
-        Route::resource('products', 'API\Catalog\ProductController');
-        Route::resource('categories', 'API\Catalog\CategoryController');
-        Route::resource('orders', 'API\Manager\ManagerController');
-    });
-
     Route::group(['prefix' => 'admin'], function() {
-        Route::resource('users', 'API\Admin\AdminController');
+        Route::middleware('admin')->group(function () {
+            Route::resource('users', 'API\Admin\User\AdminController');
+            Route::resource('products', 'API\Admin\Product\ProductController');
+            Route::resource('categories', 'API\Admin\Category\CategoryController');
+            Route::resource('orders', 'API\Admin\Order\OrderController');
+        });
     });
 
-    Route::group(['prefix' => 'users'], function() {
-        Route::get('/show', 'API\Users\UserController@show');
-        Route::post('/update', 'API\Users\UserController@update');
-        Route::get('/delete', 'API\Users\UserController@delete');
-        Route::get('/orders/show/{order?}', 'API\Users\OrderController@show');
-        Route::post('/orders/update/{order}', 'API\Users\OrderController@update');
-        Route::get('/orders/delete/{order}', 'API\Users\OrderController@delete');
+    Route::group(['prefix' => 'clients'], function() {
+        Route::middleware('client')->group(function () {
+            Route::resource('users', 'API\Users\User\UserController');
+            Route::resource('orders', 'API\Users\Order\OrderController');
 
-        Route::group(['prefix' => 'basket', ], function() {
-            Route::get('/', 'API\Basket\BasketController@basketCheck');
-            Route::get('/add/{product}', 'API\Basket\BasketController@basketAdd');
-            Route::get('/remove/{product}', 'API\Basket\BasketController@basketRemove');
-            Route::post('/confirm', 'API\Basket\BasketController@basketConfirm');
+            Route::group(['prefix' => 'basket', ], function() {
+                Route::get('/', 'API\Basket\BasketController@basketCheck');
+                Route::get('/add/{product}', 'API\Basket\BasketController@basketAdd');
+                Route::get('/remove/{product}', 'API\Basket\BasketController@basketRemove');
+                Route::post('/confirm', 'API\Basket\BasketController@basketConfirm');
+            }); 
         });  
+    });
+
+    Route::group(['prefix' => 'manager'], function() {
+        Route::middleware('manager')->group(function () {
+            Route::resource('products', 'API\Manager\Product\ProductController');
+            Route::resource('categories', 'API\Manager\Category\CategoryController');
+            Route::resource('orders', 'API\Manager\Order\ManagerController');
+        });
     });
 
     Route::get('/logout', 'API\Authentication\LogController@logout');

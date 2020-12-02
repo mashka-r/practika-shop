@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Basket extends Model
 {
+    const TOTAL = 0;
+    const VALUE = 7;
+
     protected $fillable = [
         'user_id',
         'temporary_key', 
